@@ -1,0 +1,40 @@
+- hosts: myweb
+  tasks:
+  - name: "installing httpd"
+    package:
+      name: "httpd"
+  - name: Installing php software
+    package:
+      name: "php"
+      state: present
+  - name: Copy php file
+    copy:
+      dest: "/var/www/html/index.php"
+      src: index.php
+  - service:
+      name: "httpd"
+      state: "restarted"
+  - name: "Stoping firewall"
+    firewalld:
+      port: "8080/tcp"
+      state: enabled
+      permanent: yes
+- hosts: mylb
+  tasks:
+  - name: "install LB software"
+    package:
+      name: "haproxy"
+      state: present
+  - name: "Replace port"
+    replace:
+      path: "/etc/haproxy/haproxy.cfg"
+      regexp: "5000"
+      replace: "8080"
+  - name: "Configure HAProxy"
+    template:
+     dest: "/etc/haproxy/haproxy.cfg"
+     src: "haproxy.cfg.j2"
+  - name: "Start haProXy service"
+    service:
+      name: "haproxy"
+      state: restarted
